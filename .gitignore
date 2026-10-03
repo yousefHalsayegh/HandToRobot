@@ -1,0 +1,65 @@
+# Virtual environments
+.venv
+
+# C++
+**/cmake-build*/
+**/build*/
+**/*.so
+**/*.log*
+
+# Omniverse
+**/*.dmp
+**/.thumbs
+
+# # No USD files allowed in the repo
+**/*.usd
+**/*.usda
+**/*.usdz
+
+# Python
+.DS_Store
+**/*.egg-info/
+**/__pycache__/
+**/.pytest_cache/
+**/*.pyc
+**/*.pb
+wheels/
+dist/
+*.py[oc]
+
+# Outputs
+**/output/*
+**/outputs/*
+**/videos/*
+**/wandb/*
+**/.neptune/*
+docker/artifacts/
+*.tmp
+**/eval/
+# Isaac-Sim packman
+_isaac_sim*
+_repo
+_build
+.lastformat
+
+# RL-Games and Training
+runs/
+recordings/
+**/logs/*
+logs/
+
+# Pre-Trained Checkpoints
+/.pretrained_checkpoints/
+**/Checkpoints/
+*.pkl
+*/runs/
+*/logs/
+**/sweep_export/
+**/random_file/
+# Challenge datasets/results
+data/raw_human/*
+data/processed_human/*
+data/robot_demos/*
+results/**
+!data/**/.gitkeep
+!results/**/.gitkeep
