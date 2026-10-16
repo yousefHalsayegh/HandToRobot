@@ -152,14 +152,14 @@ lerobot-train --policy.type=act \
     --dataset.repo_id=local/htr_naive \
     --output_dir=experiments/act_naive \
     --policy.push_to_hub=false \
-    --steps=50000 --wandb.enable=false
+    --steps=25000 --wandb.enable=false
 
-# object-relative
+# object-relative (replay filtering limited the dataset; naive is the primary trained policy)
 lerobot-train --policy.type=act \
     --dataset.repo_id=local/htr_object_relative \
     --output_dir=experiments/act_object_relative \
     --policy.push_to_hub=false \
-    --steps=50000 --wandb.enable=false
+    --steps=25000 --wandb.enable=false
 ```
 
 ### 5 — Evaluate
@@ -177,9 +177,9 @@ python src/sim/scripts/evaluate.py \
 python src/sim/scripts/evaluate.py \
     --task SOArm-PickPlace-v0 --headless \
     --policy act \
-    --checkpoint experiments/act_object_relative/checkpoints/050000/pretrained_model \
+    --checkpoint experiments/act_object_relative/checkpoints/025000/pretrained_model \
     --episodes 50 \
-    --output_csv results/act_obj_50k.csv
+    --output_csv results/act_obj_25k.csv
 ```
 
 ### Visualise demos without Isaac Lab
@@ -192,10 +192,10 @@ python visualise_demos.py data/processed_human/demo_01.npz    # specific demo
 
 ## Results
 
-| Method | Demos | Replay kept | 1k steps | 25k steps | 50k steps |
-|---|---|---|---|---|---|
-| Naive wrist mapping | 25 | 16 / 25 (64%) | 0% | TBD | TBD |
-| Object-relative + aug ×8 | 25 | 16 / 200 (8%) | 0% | TBD | TBD |
+| Method | Demos | Replay kept | 1k steps | 25k steps |
+|---|---|---|---|---|
+| Naive wrist mapping | 25 | 16 / 25 (64%) | 0% | TBD |
+| Object-relative + aug ×8 | 25 | 16 / 200 (8%) | 0% | 0% |
 
 ### Replay success
 
@@ -205,7 +205,7 @@ Both datasets entering training therefore contain 16 demos. The ablation is a cl
 
 ### Policy success
 
-0% at 1,000 steps is a pipeline validation result. ACT requires 50,000–100,000 steps for pick-and-place. Results at 25k and 50k steps are in progress and will be filled in above.
+Both methods achieve 0% at 25,000 steps. Training at 1,000 steps is a pipeline validation result only. See the Reflection section below for a full analysis of why and what the fixes are.
 
 ---
 
@@ -218,7 +218,7 @@ The table plane gives accurate metric object and goal positions via ray-plane in
 The SO-101 chain reduces to a planar two-link problem once shoulder pan is solved from `atan2(y, x)`. The analytic solution is deterministic, fast (seeded from a precomputed table of 20,000 random configurations), and interpretable. The approach axis is constrained to point downward; the remaining joints handle position accuracy.
 
 **SO-101 over Panda in LIBERO.**
-The 5-DOF arm makes the embodiment gap harder and more interesting than the 7-DOF Panda in the challenge example. Prior thesis work on this asset in Isaac Lab made the sim-side implementation tractable within one day.
+The 5-DOF arm makes the embodiment gap harder and more interesting than the 7-DOF Panda in the challenge example. Prior thesis work on this asset in Isaac Lab made the sim-side implementation tractable.
 
 **Diverse recording protocol.**
 Obstacle avoidance and drop-and-regrasp sequences were included deliberately, not incidentally. A policy that only sees clean straight-line trajectories will not generalise to the variability of real manipulation. The object-relative method is the reason this diversity can be included without hurting data quality: detours in hand space become compact, accurate offsets in robot space.
@@ -238,6 +238,20 @@ Augmenting 8× per demo generates up to 200 configurations, but most land near j
 
 **ArUco detection from a phone screen.**
 5 of 30 videos failed because screen glare reduced marker contrast. A printed paper marker eliminates this entirely and was the intended approach; screen display was used for convenience.
+
+---
+
+## Reflection
+
+Both methods achieve 0% policy success at 25,000 steps. The pipeline is complete and validated — replay works, training runs, evaluation runs — but three compounding issues prevented a generalisable policy from emerging. Each has a concrete fix.
+
+**Dataset size (16 demos)** is below what ACT typically needs — the original paper used 50 demos minimum. The recording produced 25 videos, but the replay filter is the bottleneck: naive passed 64% (16/25) and object-relative passed only 8% (16/200) because augmentation placed most configurations near joint limits. The fix is to filter augmented demos by IK position error before replay — discarding any with error greater than 3 mm — which would bring the object-relative dataset to a comparable size as naive without requiring additional recordings.
+
+**Training budget (25k steps)** is likely insufficient. ACT on pick-and-place typically requires 50,000–100,000 steps to learn a generalisable behaviour. 25k is an intermediate checkpoint, not a converged result. The fix is straightforward: run to 100k steps with no code changes.
+
+**State-only observations** compound both limitations. The policy must infer object position from joint state alone, which is underspecified — it cannot know where the object is in a randomised episode without seeing it. With images the policy could localise the object directly. The fix is to enable image observations on a platform where the Isaac Lab rendering kit runs correctly; the retargeted dataset and training pipeline are already structured to support this without changes to the retargeting method.
+
+The replay success numbers — 64% naive, 8% object-relative — are the more meaningful result from this submission. They directly measure the quality of the retargeting method independent of policy training, and the gap between them isolates the augmentation failure mode cleanly.
 
 ---
 

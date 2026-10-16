@@ -109,23 +109,25 @@ def main():
             continue
          # save sim diagram on first success
         if n_ok == 0:
-            import matplotlib.pyplot as plt
-            from pathlib import Path as P
-            P("assets").mkdir(exist_ok=True)
-            fig, ax = plt.subplots(figsize=(4, 4))
-            demo = dict(np.load(path))
-            cube = demo["cube_start_robot"]
-            goal = demo["goal_robot"]
-            ax.set_xlim(0, 0.35); ax.set_ylim(-0.20, 0.25)
-            ax.add_patch(plt.Rectangle((cube[0]-0.045, cube[1]-0.035), 0.09, 0.07, color="saddlebrown", label="object"))
-            ax.add_patch(plt.Circle((goal[0], goal[1]), 0.095, color="royalblue", fill=False, lw=3, label="goal"))
-            ax.plot(0, 0, "k^", ms=10, label="robot base")
-            ax.set_xlabel("x (m)"); ax.set_ylabel("y (m)")
-            ax.set_title("Sim scene — first successful demo")
-            ax.legend(fontsize=8); ax.set_aspect("equal")
-            ax.grid(True, alpha=0.3)
-            fig.savefig("assets/sim_frame.png", dpi=120, bbox_inches="tight")
-            plt.close()
+            _d = dict(np.load(path))
+            _cube = _d["cube_start_robot"]
+            _goal = _d["goal_robot"]
+            if _cube[0] > 0.03:  # only save if cube is actually in workspace
+                import matplotlib
+                matplotlib.use("Agg")
+                import matplotlib.pyplot as plt
+                Path("assets").mkdir(exist_ok=True)
+                fig, ax = plt.subplots(figsize=(4, 4))
+                ax.set_xlim(-0.05, 0.40); ax.set_ylim(-0.25, 0.30)
+                ax.add_patch(plt.Rectangle((_cube[0]-0.045, _cube[1]-0.035), 0.09, 0.07, color="saddlebrown", label="object"))
+                ax.add_patch(plt.Circle((_goal[0], _goal[1]), 0.095, color="royalblue", fill=False, lw=3, label="goal"))
+                ax.plot(0, 0, "k^", ms=10, label="robot base")
+                ax.set_xlabel("x (m)"); ax.set_ylabel("y (m)")
+                ax.set_title("Sim scene — top-down view")
+                ax.legend(fontsize=8); ax.set_aspect("equal")
+                ax.grid(True, alpha=0.3)
+                fig.savefig("assets/sim_frame.png", dpi=120, bbox_inches="tight")
+                plt.close(fig)
         for f in frames:
             add_frame_to_dataset(dataset, f["state"], f["action"], f["rgb"], TASK_STR)
         dataset.save_episode()
