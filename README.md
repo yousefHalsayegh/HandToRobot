@@ -9,11 +9,16 @@ This project turns phone videos of a human hand picking up and placing an object
 ---
 
 ## Real vs Sim
-
-| Real recording setup | Sim scene |
-|---|---|
-| ![real](assets/real_setup.png) | ![sim](assets/sim_frame.png) |
-
+<table>
+<tr>
+<td align="center"><strong>Real recording setup</strong></td>
+<td align="center"><strong>Sim scene</strong></td>
+</tr>
+<tr>
+<td><img src="assets/real_setup.jpg" width="350"/></td>
+<td><img src="assets/sim_frame.png" width="350"/></td>
+</tr>
+</table>
 Object: dark rectangular card storage box (~9×7×3 cm). Goal: 19 cm blue tin lid. ArUco marker displayed on phone screen defines the table coordinate frame.
 
 ---
