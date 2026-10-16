@@ -1,42 +1,64 @@
 [project]
-name = "human-hand-to-robot"
+name = "HandToRobot"
 version = "0.1.0"
-description = "Human hand demonstrations retargeted to SO-ARM101 manipulation in Isaac Lab"
+description = "Human hand demonstrations retargeted to SO-ARM101 pick-and-place in Isaac Lab"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 
 dependencies = [
-    "isaaclab[isaacsim,all]==2.3.2.post1",
+    # ── perception (install these first, no GPU needed) ──────────────────
+    "mediapipe==0.10.33",
+    "opencv-contrib-python>=4.9",
+    "scipy>=1.13",
+    "numpy>=1.26",
+    "matplotlib",
+    "tqdm",
 
+    # ── robot learning ───────────────────────────────────────────────────
+    # lerobot 0.4.4 is the last version that supports Python 3.11
+    "lerobot==0.4.4",
+    "av>=13.0",
+    "datasets>=4.8",
+    "huggingface-hub",
+
+    # ── torch (pulled from the pytorch index below) ──────────────────────
     "torch==2.7.0",
     "torchvision==0.22.0",
 
-    "numpy",
-    "scipy",
-    "opencv-python",
-    "matplotlib",
-
-    "datasets",
-    "huggingface-hub",
-    "jsonlines",
+    # ── Isaac Lab / Isaac Sim ─────────────────────────────────────────────
+    # These are NOT on PyPI. Install them separately following:
+    # https://isaac-sim.github.io/IsaacLab/main/source/setup/installation
+    # After that, `pip install -e .` will succeed because Isaac is already
+    # present in the environment and these lines are commented out.
+    #
+    # "isaaclab==2.3.2.post1",
+    # "isaacsim==5.1.0.0",
+    # ... (all isaacsim-* packages)
+    # "isaaclab-tasks==0.11.14"
 ]
 
 [project.scripts]
-inspect-demo = "human_data.scripts.inspect_demo:main"
+inspect-demo      = "human_data.scripts.inspect_demo:main"
+process-video     = "human_data.scripts.process_video:main"
+replay-demos      = "sim.scripts.replay_demos:main"
+evaluate          = "sim.scripts.evaluate:main"
 
 [tool.uv.sources]
-torch = { index = "pytorch" }
+torch      = { index = "pytorch" }
 torchvision = { index = "pytorch" }
 
 [[tool.uv.index]]
 name = "nvidia"
-url = "https://pypi.nvidia.com/"
+url  = "https://pypi.nvidia.com/"
 
 [[tool.uv.index]]
 name = "pytorch"
-url = "https://download.pytorch.org/whl/cu128"
+url  = "https://download.pytorch.org/whl/cu128"
 explicit = true
 
 [build-system]
-requires = ["uv_build>=0.8.21,<0.9.0"]
-build-backend = "uv_build"
+requires      = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/human_data", "src/sim"]

@@ -1,22 +1,20 @@
 from __future__ import annotations
 import torch
+import numpy as np
 
 
 def joint_positions(env) -> torch.Tensor:
-    """Robot joint positions in simulator joint order."""
     return env.scene["robot"].data.joint_pos.clone()
 
-
 def object_position_w(env) -> torch.Tensor:
-    """World-frame object position."""
-    return env.scene["object"].data.root_pos_w
-
+    return env.scene["object"].data.root_pos_w.clone()
 
 def ee_position_w(env) -> torch.Tensor:
-    """World-frame end-effector position from the frame transformer."""
-    return env.scene["ee_frame"].data.target_pos_w[..., 0, :]
-
+    return env.scene["ee_frame"].data.target_pos_w[..., 0, :].clone()
 
 def object_to_goal(env) -> torch.Tensor:
-    """Vector from object centre to goal centre."""
-    return env.scene["goal"].data.root_pos_w - env.scene["object"].data.root_pos_w
+    return env.scene["goal_marker"].data.root_pos_w - env.scene["object"].data.root_pos_w
+
+# def front_camera_rgb(env) -> torch.Tensor:
+#     """Returns (num_envs, H, W, 3) uint8 RGB from the front camera."""
+#     return env.scene["front_cam"].data.output["rgb"].clone()

@@ -14,6 +14,6 @@ def lift_reward(env, min_height: float = 0.05) -> torch.Tensor:
 
 def place_reward(env, std: float = 0.08) -> torch.Tensor:
     obj = env.scene["object"].data.root_pos_w
-    goal = env.scene["goal"].data.root_pos_w
+    goal = env.scene["goal_marker"].data.root_pos_w
     d = torch.linalg.norm(obj - goal, dim=-1)
     return 1.0 - torch.tanh(d / std)

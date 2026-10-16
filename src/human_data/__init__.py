@@ -1,1 +1,1 @@
-from .trajectory import HumanFrame, RobotTarget
+from .trajectory import HumanDemo, RobotTrajectory

@@ -1,1 +1,1 @@
-from .trs_so101 import SO_ARM101_CFG
+from .trs_so101.so_arm101 import *
